@@ -3,6 +3,7 @@ from pydoc import resolve
 import requests
 import time
 import csv
+import pymysql
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -10,7 +11,9 @@ import json
 import matplotlib.pyplot as plt
 from pandas.io.json import json_normalize
 from datetime import datetime
-
+import mysql.connector
+from mysql.connector import Error
+from sqlalchemy import create_engine
 
 #Useful Links
 #https://towardsdatascience.com/how-to-convert-json-into-a-pandas-dataframe-100b2ae1e0d8
@@ -112,7 +115,14 @@ print(result.head())
 result.to_excel("/Users/siddharthdesai/documents/dataAnalysis/result.xlsx")
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
-# Step 5 : Testing to avoid data translation loss
+# Step 5 : Write data to SQL database
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+engine = create_engine("mysql+pymysql://{user}:'{pw}'@localhost/{db}".format(user="root",pw="iDATA@sql22",db="okxanalytics1"))
+result.to_sql('db_table2', engine, if_exists='append')
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+# Step 6 : Testing to avoid data translation loss
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
 # print(marketTickr.head())
