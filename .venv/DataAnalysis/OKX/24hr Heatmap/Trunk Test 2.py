@@ -110,31 +110,24 @@ openInterest = df[['instId','oi','oiCcy']]
 
 result = pd.merge(pd.merge(marketTickr,instrumentEconomics, on='instId',how='left' ), openInterest , on='instId', how='left' )
 
-#Need to re-format all the data types so the sql db accurately captures it. 
+convert_dict = {'volCcy24h': float,
+                'vol24h': float,
+                'oi': float,
+                'oiCcy': float}
+result = result.astype(convert_dict)
 
-print(result.info())
-
-result['volCcy24h'] = result['volCcy24h'].astype(float)
-result['vol24h'] = result['vol24h'].astype(float)
-result['askPx'] = result['askPx'].astype(float)
-result['askSz'] = result['askSz'].astype(float)
-result['bidPx'] = result['bidPx'].str.replace(' ', '').astype(float)
-result['bidSz'] = result['bidSz'].str.replace(' ', '').astype(float)
-result['stk'] = result['volCcy24h'].astype(int)
-result['oi'] = result['oi'].astype(float)
-result['oiCcy'] = result['oiCcy'].astype(float)
-
-print(result.info())
+result = result.drop(columns='instType_y')
 
 result.to_excel("/Users/siddharthdesai/documents/dataAnalysis/result.xlsx")
+print("SUCCESS : Export to Excel")
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 # Step 5 : Write data to SQL database
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-
-#engine = create_engine('mysql+pymysql://{user}:{pw}@localhost/{db}'.format(user="root",pw="iDATAsql22",db="okxanalytics1"))
-#result.to_sql('24hrVol', con = engine, if_exists = 'append')
+engine = create_engine('mysql+pymysql://{user}:{pw}@localhost/{db}'.format(user="root",pw="iDATAsql22",db="okxanalytics1"))
+result.to_sql('VolumeAnalysis', con = engine, if_exists = 'append')
+print("SUCCESS : Data appended to SQL")
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 # Step 6 : Testing to avoid data translation loss

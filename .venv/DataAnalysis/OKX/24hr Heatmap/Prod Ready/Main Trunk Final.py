@@ -3,17 +3,16 @@ from pydoc import resolve
 import requests
 import time
 import csv
-import pymysql
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import pymysql
 import json
 import matplotlib.pyplot as plt
 from pandas.io.json import json_normalize
 from datetime import datetime
-import mysql.connector
-from mysql.connector import Error
 from sqlalchemy import create_engine
+
 
 #Useful Links
 #https://towardsdatascience.com/how-to-convert-json-into-a-pandas-dataframe-100b2ae1e0d8
@@ -110,16 +109,24 @@ openInterest = df[['instId','oi','oiCcy']]
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
 result = pd.merge(pd.merge(marketTickr,instrumentEconomics, on='instId',how='left' ), openInterest , on='instId', how='left' )
-print(result.info())
-print(result.head())
+result = result.drop(columns='instType_y')
+
+convert_dict = {'volCcy24h': float,
+                'vol24h': float,
+                'oi': float,
+                'oiCcy': float}
+result = result.astype(convert_dict)
+
 result.to_excel("/Users/siddharthdesai/documents/dataAnalysis/result.xlsx")
+print("SUCCESS : Export to Excel")
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 # Step 5 : Write data to SQL database
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-engine = create_engine("mysql+pymysql://{user}:'{pw}'@localhost/{db}".format(user="root",pw="iDATA@sql22",db="okxanalytics1"))
-result.to_sql('db_table2', engine, if_exists='append')
+engine = create_engine('mysql+pymysql://{user}:{pw}@localhost/{db}'.format(user="root",pw="iDATAsql22",db="okxanalytics1"))
+result.to_sql('VolumeAnalysis', con = engine, if_exists = 'append')
+print("SUCCESS : Data appended to SQL")
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 # Step 6 : Testing to avoid data translation loss
